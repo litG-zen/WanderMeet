@@ -22,6 +22,7 @@ func main() {
 
 	// Defining folder to load templates from
 	app.LoadHTMLGlob("templates/*")
+	app.Static("/media", "./media")
 
 	app.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
