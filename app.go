@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/litG-zen/WanderMeet/auth"
 	"github.com/litG-zen/WanderMeet/logs"
 
 	"github.com/gin-gonic/gin"
@@ -59,6 +60,8 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": err.Error(),
 			})
+			log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusAccepted, "invalid payload")
+			logs.Logger(log_string, true)
 			return
 		} else {
 			// ToDo : Add user registration flow.
@@ -81,13 +84,20 @@ func main() {
 				  - Send an OTP sms
 				  - Log activity
 			*/
+			c.JSON(
+				http.StatusOK,
+				gin.H{
+					"message": "data received",
+					"data":    validator,
+					"auth_tokens": gin.H{
+						"access_token":  string(auth.GenerateAuthToken(1234)),
+						"refresh_token": string(auth.GenerateRefreshToken(1234)),
+					},
+				})
+			log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusAccepted, "Valid user")
+			logs.Logger(log_string, false)
+
 		}
-		c.JSON(
-			http.StatusOK,
-			gin.H{
-				"message": "data received",
-				"data":    validator,
-			})
 	})
 
 	app.POST("/login", func(c *gin.Context) {
@@ -96,6 +106,8 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": err.Error(),
 			})
+			log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusAccepted, "invalid payload")
+			logs.Logger(log_string, true)
 			return
 		} else {
 			// ToDo : Add user login flow.
@@ -115,14 +127,23 @@ func main() {
 				    - perform geoquery to get all nearby registered users.
 				  - Log activity
 			*/
+			c.JSON(
+				http.StatusOK,
+				gin.H{
+					"message": "data received",
+					"data":    validator,
+					"auth_tokens": gin.H{
+						"access_token":  string(auth.GenerateAuthToken(1234)),
+						"refresh_token": string(auth.GenerateRefreshToken(1234)),
+					},
+				})
+			log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusAccepted, "Valid user")
+			logs.Logger(log_string, false)
 		}
-		c.JSON(
-			http.StatusOK,
-			gin.H{
-				"message": "data received",
-				"data":    validator,
-			})
+
 	})
+
+	app.POST("/get_nearby_users", NearbyUsersFetch)
 
 	app.Run(":" + fmt.Sprint(PORT)) // listen and serve on 0.0.0.0:<random_port> (for windows "localhost:<rand_port>")
 }
