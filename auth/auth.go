@@ -2,23 +2,44 @@ package auth
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const API_KEY = "f902b6d8-cfc9-4e62-84aa-1d5c44fe27ec"
-
-// ToDo : try adding JWT token based authentication for critical APIs
-// Context-switched to JWT token creation after hotheading on logs ! phewww !
-func GenerateJWT(userID int) (string, error) {
+func GenerateAuthToken(userID int) string {
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": "L^L!7",
-		"exp":     86400, //24*60*60   // 1 Day expiration for now, will later make it ENV var base, have separate access/refresh token
+		"user_id":    userID,
+		"iat":        time.Now().Unix(),
+		"token_type": "auth-token",
+		"exp":        time.Now().Add(JWT_AUTH_TOKEN_EXP_DELTA * time.Second).Unix(),
 	})
 
 	fmt.Println(token)
 
-	// Sign the token with secret
-	return "<Token>", nil
+	signedToken, err := token.SignedString([]byte(JWT_AUTH_SECRET_KEY))
+	if err != nil {
+		return ""
+	}
+	return signedToken
+}
+
+func GenerateRefreshToken(userID int) string {
+	// Create token with claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":    userID,
+		"iat":        time.Now().Unix(),
+		"token_type": "refresh-token",
+		"exp":        time.Now().Add(JWT_REFRESH_TOKEN_EXP_DELTA * time.Second).Unix(),
+	})
+
+	fmt.Println(token)
+
+	signedToken, err := token.SignedString([]byte(JWT_AUTH_SECRET_KEY))
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return signedToken
 }

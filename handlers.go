@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/litG-zen/WanderMeet/auth"
 	"github.com/litG-zen/WanderMeet/logs"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +28,7 @@ func AsyncAPIHandler(c *gin.Context) {
 
 	token := c.GetHeader("API-KEY")
 
-	if token != auth.API_KEY {
+	if token != API_KEY {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": INVALID_API_MSG})
 		log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusUnauthorized, INVALID_API_MSG)
 		logs.Logger(log_string, true)
@@ -49,4 +48,19 @@ func AsyncAPIHandler(c *gin.Context) {
 
 	log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusUnauthorized, "SUCCESS")
 	logs.Logger(log_string, false)
+}
+
+func NearbyUsersFetch(c *gin.Context) {
+	/*
+		Flow :
+		  Constraints check
+		   - parse JWT token to get the userid
+		   - check for user_details presence in DB
+		   - fetch the nearby users in configurable radius, based on user's pro-version from GeoRedis/Postgis(depends)
+		   - return the details in response
+	*/
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "nearby_users available",
+	})
 }
