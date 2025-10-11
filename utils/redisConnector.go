@@ -57,6 +57,9 @@ func NewRedisClient() (*RedisClient, error) {
 	if initErr != nil {
 		return nil, initErr
 	}
+
+	fmt.Printf("\n****Redis connection Initiated****\n")
+
 	return redisClient, nil
 }
 
@@ -65,4 +68,16 @@ func GetRedisInstance() (*RedisClient, error) {
 		return NewRedisClient()
 	}
 	return redisClient, nil
+}
+
+func CloseRedisConnection() {
+	redisClient.client.Close()
+	fmt.Printf("\n****Redis connection Closed****\n")
+
+}
+
+func AddUserLocation(lat float32, long float32, key string) error {
+	//rds := GetRedisInstance()
+	//rds.client.
+	return nil
 }
