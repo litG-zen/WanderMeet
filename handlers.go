@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/litG-zen/WanderMeet/auth"
 	"github.com/litG-zen/WanderMeet/logs"
+	"github.com/litG-zen/WanderMeet/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 // created a simple GET API using gin
@@ -59,8 +62,64 @@ func NearbyUsersFetch(c *gin.Context) {
 		   - fetch the nearby users in configurable radius, based on user's pro-version from GeoRedis/Postgis(depends)
 		   - return the details in response
 	*/
-
+	utils.GetRedisInstance()
 	c.JSON(http.StatusOK, gin.H{
 		"message": "nearby_users available",
 	})
+}
+
+func RegisterUser(c *gin.Context) {
+	var validator RegistrationBody
+
+	// Bind Json to struct
+	if err := c.ShouldBindBodyWith(&validator, binding.JSON); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusAccepted, "invalid payload")
+		logs.Logger(log_string, true)
+		return
+	} else {
+		// ToDo : Add user registration flow.
+		/*
+
+			Data Constains are satisfied at JSON Binding stage itself.
+
+			Few check before proceeding with registration.
+			  - Phone number already exists
+			  - Empty name
+			  - Email validation using regex
+			  - Gender to be Male/Female (sorry I don't support non-binaries.)
+			  - Places visited array should not have empty strings
+			  - lat/long is valid
+
+			Registration Process
+			  - User table entry creation
+			  - Set latlong to redis for later geo-redis queries
+			  - Send a welcome email and otp email to the user
+			  - Send an OTP sms
+			  - Log activity
+		*/
+
+		// phone number already exists check
+		fmt.Printf("Calling check")
+		reg_err := utils.IsExistingUser(validator.Phone)
+		if reg_err != nil {
+			fmt.Errorf("Registration error check", reg_err)
+		}
+
+		c.JSON(
+			http.StatusOK,
+			gin.H{
+				"message": "data received",
+				"data":    validator,
+				"auth_tokens": gin.H{
+					"access_token":  string(auth.GenerateAuthToken(1234)),
+					"refresh_token": string(auth.GenerateRefreshToken(1234)),
+				},
+			})
+		log_string := fmt.Sprintf("%v %v %v %v", time.Now(), c.FullPath(), http.StatusAccepted, "Valid user")
+		logs.Logger(log_string, false)
+
+	}
 }

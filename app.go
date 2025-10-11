@@ -8,6 +8,7 @@ import (
 
 	"github.com/litG-zen/WanderMeet/auth"
 	"github.com/litG-zen/WanderMeet/logs"
+	"github.com/litG-zen/WanderMeet/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +25,13 @@ func main() {
 	// Defining folder to load templates from
 	app.LoadHTMLGlob("templates/*")
 	app.Static("/media", "./media")
+
+	utils.NewDBConnection() // Initiating DB connection
+	utils.NewRedisClient()  // Initiating Redis connection
+
+	// Defining connection terminations
+	defer utils.CloseDBConnection()
+	defer utils.CloseRedisConnection()
 
 	app.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
